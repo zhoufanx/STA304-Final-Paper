@@ -1,0 +1,258 @@
+---
+title: "data_clean"
+author: "FanxiZhou"
+date: "2020/12/16"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(cesR)
+library(dplyr)
+library(visdat)
+```
+
+
+```{r data}
+# read in raw data
+raw_data=read.csv("gss.csv")
+ces_raw=read.csv("ces_raw.csv")
+library(visdat)
+gss_data <- dplyr::select(raw_data, age, sex,  education, income_family,province,place_birth_canada,religion_has_affiliation,regilion_importance,partner_main_activity)
+visdat::vis_dat(gss_data)
+gss_data<- na.omit(gss_data)
+# round age
+gss_data<-gss_data %>% mutate_at(vars(age), funs(round(., 0)))
+
+```
+
+
+```{r}
+#clean age
+ces_raw<- ces_raw %>% mutate(age=2019-q2)
+
+```
+
+
+```{r}
+#clean sex
+ces_raw<- ces_raw %>% mutate(sex = case_when(
+  q3 == 1~ 'Male',
+  q3 == 2 ~ 'Female'))
+```
+
+```{r}
+#clean education
+
+gss_data$education[gss_data$education == 'High school diploma or a high school equivalency certificate'] <- 'High school'
+gss_data$education[gss_data$education == 'Trade certificate or diploma'] <- 'Trade diploma'
+gss_data$education[gss_data$education == "Bachelor's degree (e.g. B.A., B.Sc., LL.B.)"] <- 'Bachelor degree'
+gss_data$education[gss_data$education == 'College, CEGEP or other non-university certificate or di...'] <- 'College'
+gss_data$education[gss_data$education == 'Less than high school diploma or its equivalent'] <- 'Less than high school'
+gss_data$education[gss_data$education == "University certificate or diploma below the bachelor's level"] <- 'University'
+gss_data$education[gss_data$education == "University certificate, diploma or degree above the bach..."] <- 'Above bachelor'
+
+ces_raw<- ces_raw %>% mutate(education = case_when(
+  q61 == 1~ 'Less than high school',
+  q61 == 2~ 'Less than high school',
+  q61 == 3~ 'Less than high school',
+  q61 == 4~ 'Less than high school',
+  q61 == 5~ 'High school',
+  q61 == 6~ 'Trade diploma',
+  q61 == 7~ 'College',
+  q61 == 8~ 'University',
+  q61 == 9~ 'Bachelor degree',
+  q61 == 10~ 'Above bachelor',
+  q61 == 11~ 'Above bachelor'))
+```
+
+
+```{r}
+#clean income
+ces_raw<- ces_raw %>% mutate(income_family = case_when(
+  q69 >= 0 & q69 <=25000 ~ 'Less than $25,000',
+  q69 >= 25000 & q69 <=49999 ~ '$25,000 to $49,999',
+  q69 >= 50000 & q69 <=74999 ~ '$50,000 to $74,999',
+  q69 >= 75000 & q69 <=99999 ~ '$75,000 to $99,999',
+  q69 >= 100000 & q69 <=124999 ~ '$100,000 to $ 124,999',
+  q69 >= 125000 ~ '$125,000 and more'
+  ))
+```
+
+```{r}
+# clean province
+ces_raw<- ces_raw %>% mutate(province = case_when(
+  q61 == 1~ 'Newfoundland and Labrador',
+  q61 == 2~ 'Prince Edward Island',
+  q61 == 3~ 'Nova Scotia',
+  q61 == 4~ 'New Brunswick',
+  q61 == 5~ 'Quebec',
+  q61 == 6~ 'Ontario',
+  q61 == 7~ 'Manitoba',
+  q61 == 8~ 'Saskatchewan',
+  q61 == 9~ 'Alberta',
+  q61 == 10~ 'British Columbia'))
+
+gss_data$province[gss_data$province == 'Newfoundland and Labrador'] <- NA
+```
+
+
+
+```{r}
+# clean born canada
+
+gss_data<- gss_data %>% mutate(born_canada = case_when(
+  place_birth_canada == 'Born in Canada'~'born in Canada',
+   place_birth_canada == 'Born outside Canada'~'born outside canada'))
+
+ces_raw<- ces_raw %>% mutate(born_canada = case_when(
+  q64 == 1~ 'born outside canada',
+  q64 == 2~ 'born in Canada',
+  q64 == 3~ 'born outside canada',
+  q64 == 4~ 'born outside canada',
+  q64 == 5~ 'born outside canada',
+  q64 == 6~ 'born outside canada',
+  q64 == 7~ 'born outside canada',
+  q64 == 8~ 'born outside canada',
+  q64 == 9~ 'born outside canada',
+  q64 == 10~ 'born outside canada',
+  q64 == 11~ 'born outside canada',
+  q64 == 12~ 'born outside canada',
+  q64 == 13~ 'born outside canada'))
+
+
+```
+
+```{r}
+# clean has religion
+gss_data<- gss_data %>% mutate(has_religion = case_when(
+  religion_has_affiliation == 'Has religious affiliation'~'Yes',
+   religion_has_affiliation == 'No religious affiliation'~'No'))
+
+ces_raw<- ces_raw %>% mutate(has_religion = case_when(
+  q62 == 1~ 'Yes',
+  q62 == 2~ 'Yes',
+  q62 == 3~ 'Yes',
+  q62 == 4~ 'Yes',
+  q62 == 5~ 'Yes',
+  q62 == 6~ 'Yes',
+  q62 == 7~ 'Yes',
+  q62 == 8~ 'Yes',
+  q62 == 9~ 'Yes',
+  q62 == 10~ 'Yes',
+  q62 == 11~ 'Yes',
+  q62 == 12~ 'Yes',
+  q62 == 13~ 'Yes',
+  q62 == 14~ 'Yes',
+  q62 == 15~ 'Yes',
+  q62 == 16~ 'Yes',
+  q62 == 17~ 'Yes',
+  q62 == 18~ 'Yes',
+  q62 == 19~ 'Yes',
+  q62 == 20~ 'Yes',
+  q62 == 21~ 'No',
+  q62 == 22~ 'Yes'))
+```
+
+```{r}
+# clean importance of religion
+gss_data<- gss_data %>% mutate(religion_importance = case_when(
+  regilion_importance == 'Somewhat important'~'Somewhat important',
+  regilion_importance == 'Very important'~'Very important',
+  regilion_importance == 'Not at all important'~'Not important at all',
+   regilion_importance == 'Not very important'~'Not very important'))
+
+ces_raw<- ces_raw %>% mutate(religion_importance = case_when(
+  q63 == 1~ 'Very important',
+  q63 == 2~ 'Somewhat important',
+  q63 == 3~ 'Not very important',
+  q63 == 4~ 'Not important at all'
+  ))
+
+```
+
+
+```{r}
+# clean employment
+gss_data<- gss_data %>% mutate(employment = case_when(
+  partner_main_activity == 'Working at a paid job or business'~'employement',
+  partner_main_activity == 'Going to school'~'unemployement',
+  partner_main_activity == 'Retired'~'unemployement',
+  partner_main_activity == 'Long term illness'~'unemployement',
+  partner_main_activity == 'Volunteering or care-giving other than for children'~'unemployement',
+  partner_main_activity == 'Looking for paid work'~'unemployement',
+  partner_main_activity == 'Household work'~'unemployement',
+  partner_main_activity == 'Caring for children'~'unemployement',
+  partner_main_activity == 'Maternity/paternity/parental leave'~'unemployement'))
+
+ces_raw<- ces_raw %>% mutate(employment = case_when(
+  q68 == 1~ 'employement',
+  q68 == 2~ 'employement',
+  q68 == 3~ 'employement',
+  q68 == 4~ 'unemployement',
+  q68 == 5~ 'unemployement',
+  q68 == 6~ 'unemployement',
+  q68 == 7~ 'unemployement',
+  q68 == 8~ 'unemployement',
+  q68 == 9~ 'unemployement',
+  q68 == 10~ 'unemployement',
+  q68 == 11~ 'unemployement'
+  ))
+```
+
+
+```{r}
+# clean binary data for vote
+ces_raw<- ces_raw %>% mutate(vote_Liberal= case_when(
+  q11 == 1~ 1,
+  q11 == 2~ 0,
+  q11 == 3~ 0,
+  q11 == 4~ 0,
+  q11 == 5~ 0,
+  q11 == 6~ 0,
+  q11 == 7~ 0,
+  q11 == 8~ 0,
+  q11 == 9~ 0,
+  q11 == 10~ 0
+  ))
+```
+
+
+```{r}
+# write csv for ces data
+ces_raw <- select(ces_raw,age,sex,vote_Liberal,education,has_religion,religion_importance,income_family,employment,born_canada,province)
+ces_clean<-na.omit(ces_raw)
+write.csv(ces_clean,"ces_clean.csv")
+```
+
+
+```{r}
+# make cells and write csv for gss data
+gss_data <- select(gss_data,age,sex,education,has_religion,religion_importance,income_family,employment,born_canada,province)
+gss_data <- na.omit(gss_data)
+clean_data <- 
+  gss_data %>%
+  count(age,sex,education,has_religion,religion_importance,income_family,employment,born_canada,province) %>%
+  group_by(age,sex,education,has_religion,religion_importance,income_family,employment,born_canada,province)
+
+write.csv(clean_data,"gss_clean.csv")
+
+```
+
+```{r}
+# check process
+unique(gss_data$province)
+unique(ces_raw$province)
+```
+
+
+
+
+
+
+
+
+
+
+
